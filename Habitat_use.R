@@ -60,3 +60,22 @@ cam_days <- cam_days %>%
 
 # now add running_time to the predator_wide df
 total_obs <- merge(predator_wide, cam_days, by= "locationName")
+
+# save df
+write.csv(total_obs, file = "dataframes in R/total_obs.csv", row.names = F)
+
+## Calculate capture rate for each species 
+capture_rate_df <- total_obs %>%
+  mutate(across(c("Domestic Cat", "European Polecat", "Small Mustelid", "Weasel", 
+                  "Stoat", "Mustelid", "Marten"),
+                ~ .x / running_days)) 
+
+#plot the relationship between raw counts and detection rate 
+plot(total_obs$`Domestic Cat` ~ capture_rate_df$`Domestic Cat`,
+     las=1, pch=19, 
+     ylab="Number of independent records", 
+     xlab="Capture rate per day")
+
+## Single species models 
+# uses simple linear models 
+# determine interesting covariates
