@@ -14,23 +14,34 @@ total_obs <- read.csv("dataframes in R/total_obs.csv")
 species_totals <- total_obs %>%
   summarise(
     Domestic_Cat = sum(Domestic.Cat),
+    Marten = sum(Marten),
     European_Polecat = sum(European.Polecat),
-    Small_Mustelid = sum(Small.Mustelid, Weasel, Stoat), #do we add polecat or not?
+    Small_Mustelid = sum(Small.Mustelid), #do we add polecat or not?
     Weasel = sum(Weasel),
     Stoat = sum(Stoat),
   #  Mustelid = sum(Mustelid, Small.Mustelid, Weasel, Stoat, Marten, European.Polecat),
-    Marten = sum(Marten)
-  )
+    )
 
 # Convert to long format for ggplot
 species_totals_long <- species_totals %>%
   pivot_longer(cols = everything(), names_to = "Species", values_to = "Total_Observations")
 
 # Create the bar graph
-ggplot(species_totals_long, aes(x = Species, y = Total_Observations)) +
-  geom_bar(stat = "identity", fill = "red") +
+ggplot(species_totals_long, aes(x = Species, y = Total_Observations, fill=Species)) +
+  geom_bar(stat = "identity") +
   labs(title = "Total Observations per Species", x = "Species", y = "Total Observations") +
   theme_minimal()
+
+# make same map but leave out the small mustelids
+species_totals2 <- species_totals %>%
+  select(-Small_Mustelid) %>%
+  pivot_longer(cols = everything(), names_to = "Species", values_to = "Total_Observations")
+#create bar plot again 
+ggplot(species_totals2, aes(x = Species, y = Total_Observations, fill=Species)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Observations per Species", x = "Species", y = "Total Observations") +
+  theme_minimal()
+
 
 # Make map with # observations per species located at camera locations 
 # add latitude and longitude of the camera's 
@@ -71,4 +82,22 @@ leaflet(data_with_totals) %>%
 
 # could be done for each species 
 
-## Create map of temporal activity for each species 
+### MAKE bargraph for proportion of stations visited
+print(total_obs)
+# Convert the data from wide to long format
+df_long <- total_obs %>%
+  select(-running_days, -longitude, -latitude, -Mustelid) %>% #, -Small_Mustelid
+  pivot_longer(cols = -locationName, names_to = "Species", values_to = "Observations")
+
+print(df_long)
+# Calculate the proportion of locations visited per species (non-zero values)
+species_proportions <- df_long %>%
+  mutate(Observations = ifelse(Observations > 1, 1, Observations)) %>%
+  group_by(Species) %>%
+  summarise(Proportion_Locations = sum(Observations > 0) / n())
+
+# Create the bar plot
+ggplot(species_proportions, aes(x = Species, y = Proportion_Locations, fill = Species)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Proportion of Locations Visited per Species", x = "Species", y = "Proportion of Locations") +
+  theme_minimal()

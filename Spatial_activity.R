@@ -312,7 +312,7 @@ create_pie_chart <- function(capture_rate_df) {
 base_map <- ggplot(capture_rate_df, aes(x = longitude, y = latitude)) +
   geom_point(color = "blue", alpha = 0.7) +
   labs(title = "Total Observations per Location",
-       x = "Longitude", y = "Latitude", size = "Total Observations") +
+       x = "longitude", y = "latitude", size = "Total Observations") +
   theme_minimal() +
   coord_fixed()
 base_map
@@ -358,7 +358,9 @@ print(final_plot)
 
 
 
-## make map for soarremoarre area 
+
+
+#### make map for soarremoarre area ####
 # Define the bounding box using your coordinates
 bbox <- c(left = 5.850, bottom = 53.050, right = 5.890, top = 53.070)
 
