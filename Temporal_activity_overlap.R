@@ -220,3 +220,34 @@ ggplot(kde_data, aes(x = time, y = density, color = species)) +
   geom_vline(xintercept = ((20.05 / 24) * 2 * pi), linetype= "dotted", color = "black") + 
   geom_vline(xintercept = ((21.93 / 24) * 2 * pi), linetype= "dotted", color = "black") 
 
+
+#Kruskal Wallis test for mean temporal overlap coefficients for each pairing with domestic cat 
+# create df with Dhat1 values for species compared to domestic cats 
+
+overlap_cat <- data.frame(
+  species = c("Marten", "European.Polecat", "Stoat", "Weasel", "Small.Mustelid"), 
+  overlap_co1 = c(0.6948606, 0.6908695, 0.6908695, 0.8296566, 0.8270280)
+)
+
+# Perform Kruskal-Wallis Test
+kruskal_test <- kruskal.test(overlap_co1 ~ species, data = overlap_cat)
+
+# View the test result
+kruskal_test ## p-value is well above 0.05
+
+
+# Add statistical groupings manually based on the Dunn test result
+# For example, assume the following letters are the groupings:
+overlap_cat$grouping <- c("a", "b", "b", "c", "c")
+
+# Create the plot
+ggplot(overlap_cat, aes(x = species, y = overlap_co1)) +
+  geom_point(size = 3) + 
+  geom_errorbar(aes(ymin = overlap_co1 - 0.05, ymax = overlap_co1 + 0.05), width = 0.2) +  # Add error bars manually
+#  geom_text(aes(label = grouping, y = overlap_co1 + 0.07), size = 5) +  # Add statistical letters
+  labs(title = "Mean Temporal Overlap Coefficients by Species",
+       x = "Species",
+       y = "Temporal overlap w/ domestic cat") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+

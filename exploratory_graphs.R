@@ -2,7 +2,7 @@
 rm(list=ls())
 
 # load packages
-list.of.packages <- c("kableExtra", "tidyr", "ggplot2", "gridExtra", "lme4", "dplyr", "Hmsc", "jtools", "lubridate", "corrplot", "MuMIn")
+list.of.packages <- c("kableExtra", "tidyr", "ggplot2", "gridExtra", "lme4", "dplyr", "Hmsc", "jtools", "lubridate", "corrplot", "MuMIn", "RColorBrewer", "viridis")
 
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages)
@@ -16,7 +16,7 @@ species_totals <- total_obs %>%
     Domestic_Cat = sum(Domestic.Cat),
     Marten = sum(Marten),
     European_Polecat = sum(European.Polecat),
-    Small_Mustelid = sum(Small.Mustelid), #do we add polecat or not?
+    unknown_Small_Mustelid = sum(Small.Mustelid), #do we add polecat or not?
     Weasel = sum(Weasel),
     Stoat = sum(Stoat),
   #  Mustelid = sum(Mustelid, Small.Mustelid, Weasel, Stoat, Marten, European.Polecat),
@@ -29,8 +29,18 @@ species_totals_long <- species_totals %>%
 # Create the bar graph
 ggplot(species_totals_long, aes(x = Species, y = Total_Observations, fill=Species)) +
   geom_bar(stat = "identity") +
+  scale_fill_brewer(palette = "Set2") + 
   labs(title = "Total Observations per Species", x = "Species", y = "Total Observations") +
   theme_minimal()
+# make it as a circle diagram 
+# Create a basic pie chart
+ggplot(species_totals_long, aes(x = "", y = Total_Observations, fill = Species)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") + # Converts bar chart to pie chart
+  scale_fill_brewer(palette = "Set2") + 
+  labs(title = "Species observations (Pie Chart)") +
+  theme_void()  # Removes background gridlines and axis
+
 
 # make same map but leave out the small mustelids
 species_totals2 <- species_totals %>%

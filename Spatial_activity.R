@@ -123,6 +123,7 @@ ggplot(capture_rate_df, aes(x =Domestic.Cat, y = Marten)) +
        y = "Marten Observations") +
   theme_minimal()
 
+
 # test correlation between Domestic cat and European Polecat 
 cor.test(capture_rate_df$Domestic.Cat, capture_rate_df$European.Polecat)
 # Scatter plot to show the correlation between Domestic Cats and European Polecat 
@@ -225,6 +226,85 @@ ggplot(capture_rate_df, aes(x = Stoat, y = Weasel)) +
        y = "Weasel Observations") +
   theme_minimal()
 
+#### LINEAR MODELS based on capture rates ####
+
+## CAT vs smaller predator
+## CAT VS Beech marten  
+# x is predicted based on y in lm(y ~ x, data= data)
+# Test Linear model of correlations 
+lm.cat_marten <- lm(Domestic.Cat ~ Marten, data= capture_rate_df)
+summary(lm.cat_marten)
+anova(lm.cat_marten)
+
+# Visualize the linear relationship
+ggplot(capture_rate_df, aes(x = Marten, y = Domestic.Cat)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "Beech Marten", y = "Domestic cat")
+
+## CAT vs Polecat 
+# make linear model 
+lm.cat_polecat <- lm(Domestic.Cat ~ European.Polecat, data= capture_rate_df)
+summary(lm.cat_polecat)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.cat_polecat)
+# check statistical signifance of the model 
+anova(lm.cat_polecat)
+confint(lm.cat_polecat, level = 0.95)
+
+## CAT Vs Stoat 
+# make linear model 
+lm.cat_stoat <- lm(Domestic.Cat ~ Stoat, data= capture_rate_df)
+summary(lm.cat_stoat)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.cat_stoat) ## assumptions met quite okay?
+
+# check statistical signifance of the model 
+anova(lm.cat_stoat)
+confint(lm.cat_stoat, level = 0.95)
+
+## CAT vs Weasel 
+lm.cat_weasel <- lm(Domestic.Cat ~ Weasel, data= capture_rate_df)
+summary(lm.cat_weasel)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.cat_weasel) ## assumptions met quite okay?
+
+# check statistical signifance of the model 
+anova(lm.cat_weasel)
+confint(lm.cat_weasel, level = 0.95)
+
+## MARTEN vs smaller predator 
+## Marten vs polecat 
+# make linear model 
+lm.marten_polecat <- lm(Marten ~ European.Polecat, data= capture_rate_df)
+summary(lm.marten_polecat)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.marten_polecat)
+# check statistical signifance of the model 
+anova(lm.marten_polecat)
+confint(lm.marten_polecat, level = 0.95)
+
+
+
+
+## MARTEN VS WEASEL 
+# make linear model 
+lm.marten_weasel <- lm(Marten ~ Weasel, data= capture_rate_df)
+summary(lm.marten_weasel)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.marten_weasel)
+# check statistical signifance of the model 
+anova(lm.marten_weasel)
+confint(lm.marten_weasel, level = 0.95)
+
+
+
 #### Calculate the Sorensen similarity Index ####
 # Create a binary matrix for species presence/absence
 presence_absence <- total_obs %>%
@@ -288,7 +368,24 @@ locations <- depl %>%
 # merge with capture rate data
 capture_rate_df <- merge(capture_rate_df, locations, by= "locationName")
 
-## create pie chart for each location 
+## make map for soarremoarre area 
+# Using shape file 
+sf_path <- "C:/Users/sanny/OneDrive/Documenten/Research project 1/SM_gewas"
+SM_polygon <- st_read(sf_path)
+# change CRS from amersfoort to lon/lat 
+st_crs(SM_polygon) # check current CRS
+# Transform the CRS from EPSG:28992 (Amersfoort) to EPSG:4326 (WGS84 - Latitude/Longitude)
+SM_polygon <- st_transform(SM_polygon, crs = 4326)
+# Check the new CRS
+st_crs(SM_polygon)
+
+# plot shapefile 
+ggplot(data = SM_polygon) +
+  geom_sf() + 
+  labs(title = "Soarremoarre Polygons") +
+  theme_minimal()
+
+#### create pie chart for each location ####
 # Function to create pie charts for each location
 create_pie_chart <- function(capture_rate_df) {
   # Create a dataframe for the pie chart
@@ -324,10 +421,10 @@ for (i in 1:nrow(capture_rate_df)) {
   # Add the pie chart at the specified location
   base_map <- base_map + annotation_custom(
     grob = pie_grob,
-    xmin = capture_rate_df$longitude[i] - 0.0005,  # Fixed values for each location
-    xmax = capture_rate_df$longitude[i] + 0.0005,
-    ymin = capture_rate_df$latitude[i] - 0.0005,
-    ymax = capture_rate_df$latitude[i] + 0.0005
+    xmin = capture_rate_df$longitude[i] - 0.0007,  # Fixed values for each location
+    xmax = capture_rate_df$longitude[i] + 0.0007,
+    ymin = capture_rate_df$latitude[i] - 0.0007,
+    ymax = capture_rate_df$latitude[i] + 0.0007
   )
 }
 
@@ -360,40 +457,32 @@ print(final_plot)
 
 
 
-#### make map for soarremoarre area ####
-# Define the bounding box using your coordinates
-bbox <- c(left = 5.850, bottom = 53.050, right = 5.890, top = 53.070)
-
-# Get the map using OpenStreetMap as the source
-map <- get_map(location = bbox, source = "osm", zoom = 14)  # Adjust zoom as needed
-
-# Plot the map as a background
-ggmap(map) +
-  labs(title = "Map of the Specified Area") +
-  theme_minimal()
 
 
-## try again
-# Define bounding box for Soarremoarre, Friesland, Netherlands
-bbox <- c(5.850, 53.050, 5.890, 53.070)  # left, bottom, right, top
-# Get OSM data for highways (roads) within the bounding box
-osm_data <- opq(bbox = bbox) %>%
-  add_osm_feature(key = "highway") %>%
-  osmdata_sf()
-# Plot the OpenStreetMap data (roads)
-ggplot() +
-  geom_sf(data = osm_data$osm_lines, color = "black", size = 0.3) +
-  labs(title = "Map of Soarremoarre, Friesland (Roads)") +
-  theme_minimal()
-
-
-## Try my own way
-SM23_map <- ggplot() +
-  borders(xlim = c(5.850, 5.890), ylim = c(53.050, 53.070), fill = "gray90") +
-  coord_fixed() + 
-  theme_minimal()
-SM23_map
 ##################################################
+
+library(grid)
+if (st_crs(SM_polygon)$epsg != 4326) {
+  SM_polygon <- st_transform(SM_polygon, crs = 4326)
+}
+# Convert capture_rate_df to an sf object if it's not already
+capture_rate_sf <- st_as_sf(capture_rate_df, coords = c("longitude", "latitude"), crs = 4326)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## create pie chart for each location 
 # Function to create pie charts for each location
@@ -403,11 +492,19 @@ create_pie_chart <- function(capture_rate_df) {
     species = c("Domestic.Cat", "European.Polecat", "Weasel", "Stoat", "Marten"),
     values = c(capture_rate_df$Domestic.Cat, capture_rate_df$European.Polecat, capture_rate_df$Weasel, capture_rate_df$Stoat, capture_rate_df$Marten)
   )
+ 
+   # Define custom colors for each species
+  custom_colors <- c("Domestic.Cat" = "magenta",  # Light red
+                     "European.Polecat" = "#66B3FF",  # Light blue
+                     "Weasel" = "chocolate4",  # Light green
+                     "Stoat" = "#FFD700",  # Gold
+                     "Marten" = "red")  # Tomato (reddish-orange)
   
   # Plot the pie chart
   p <- ggplot(pie_data, aes(x = "", y = values, fill = species)) +
     geom_bar(stat = "identity", width = 1) +
     coord_polar("y", start = 0) +
+    scale_fill_manual(values = custom_colors) +
     theme_void() +
     theme(legend.position = "none")
   
@@ -415,34 +512,51 @@ create_pie_chart <- function(capture_rate_df) {
   ggplotGrob(p)
 }
 
-# Define bounding box for Soarremoarre, Friesland, Netherlands
-bbox <- c(5.855, 53.050, 5.888, 53.065)  # left, bottom, right, top
-# Get OSM data for highways (roads) within the bounding box
-osm_data <- opq(bbox = bbox) %>%
-  add_osm_feature(key = "highway") %>%
-  osmdata_sf()
-# Plot the OpenStreetMap data (roads)
-
-# Base map (a simple blank map or any geographic boundary map can be added)
-base_map <- ggplot() +
-  geom_sf(data = osm_data$osm_lines, color = "black", size = 0.3) +
-  labs(title = "Map of Soarremoarre, Friesland (Roads)") +
+base_map <- ggplot(data = SM_polygon) +
+  geom_sf(fill = "#93DC5C", color = "black", alpha = 0.5) + 
+  labs(title = "Species composition per location",
+       x = "longitude", y = "latitude", size = "Total Observations") +
   theme_minimal()
-base_map
 
 # Add pie charts at respective coordinates
 for (i in 1:nrow(capture_rate_df)) {
   pie_grob <- create_pie_chart(capture_rate_df[i, ])
+  # Manually extract longitude and latitude for each pie chart
+  lon <- capture_rate_df$longitude[i]
+  lat <- capture_rate_df$latitude[i]
   
   # Add the pie chart at the specified location
   base_map <- base_map + annotation_custom(
     grob = pie_grob,
-    xmin = capture_rate_df$longitude[i] - 0.001,  # Fixed values for each location
-    xmax = capture_rate_df$longitude[i] + 0.001,
-    ymin = capture_rate_df$latitude[i] - 0.001,
-    ymax = capture_rate_df$latitude[i] + 0.001
+    xmin = lon - 0.001,  # Fixed values for each location
+    xmax = lon + 0.001,
+    ymin = lat - 0.001,
+    ymax = lat + 0.001
   )
 }
 
 # Plot the map with pie charts
 print(base_map)
+
+## Add a legend to the plot 
+# Create a dummy data frame for the legend
+dummy_data <- data.frame(
+  species = c("Domestic.Cat","European.Polecat", "Weasel", "Stoat", "Marten"),
+  values = c(1, 1, 1, 1, 1)  # Equal values just to generate the pie chart for the legend
+)
+
+# Create a dummy pie chart for the legend
+dummy_pie <- ggplot(dummy_data, aes(x = "", y = values, fill = species)) +
+  geom_bar(stat = "identity", width = 1) +
+  scale_fill_manual(values = custom_colors) + 
+  coord_polar("y", start = 0) +
+  theme_void() +
+  theme(legend.position = "right")
+
+# Extract the legend from the dummy plot
+legend <- get_legend(dummy_pie)
+
+# combine main map with pie charts and the legend 
+final_plot <- cowplot::plot_grid(base_map, legend, ncol = 2, rel_widths = c(3, 1))
+print(final_plot)
+
