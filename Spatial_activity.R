@@ -235,7 +235,7 @@ ggplot(capture_rate_df, aes(x = Stoat, y = Weasel)) +
 lm.cat_marten <- lm(Domestic.Cat ~ Marten, data= capture_rate_df)
 summary(lm.cat_marten)
 anova(lm.cat_marten)
-
+confint(lm.cat_marten)
 # Visualize the linear relationship
 ggplot(capture_rate_df, aes(x = Marten, y = Domestic.Cat)) +
   geom_point() +
@@ -302,6 +302,27 @@ plot(lm.marten_weasel)
 # check statistical signifance of the model 
 anova(lm.marten_weasel)
 confint(lm.marten_weasel, level = 0.95)
+
+# Visualize the linear relationship
+ggplot(capture_rate_df, aes(x = Weasel, y = Marten)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "Weasel", y ="Beech Marten")
+## Outlier, remove this from dataset?
+
+
+
+# all species?
+# make linear model 
+lm.cat_all <- lm(Domestic.Cat ~ Marten + European.Polecat + Stoat + Weasel, data= capture_rate_df)
+summary(lm.cat_all)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.cat_polecat)
+# check statistical signifance of the model 
+anova(lm.cat_polecat)
+confint(lm.cat_polecat, level = 0.95)
 
 
 
