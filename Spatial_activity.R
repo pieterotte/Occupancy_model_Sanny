@@ -309,8 +309,26 @@ ggplot(capture_rate_df, aes(x = Weasel, y = Marten)) +
   geom_smooth(method = "lm", col = "blue") +
   labs(title = "Linear Model",
        x = "Weasel", y ="Beech Marten")
-## Outlier, remove this from dataset?
+## Outlier, remove this from dataset? --> SK19
 
+# try model again with outlier removed
+capture_rate_df2 <- capture_rate_df[-19, ]
+# run model again, without ourlier SK19
+lm.marten_weasel_no <- lm(Marten ~ Weasel, data= capture_rate_df2)
+summary(lm.marten_weasel_no)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.marten_weasel_no)
+# check statistical signifance of the model 
+anova(lm.marten_weasel_no)
+confint(lm.marten_weasel_no, level = 0.95)
+
+# Visualize the linear relationship
+ggplot(capture_rate_df2, aes(x = Weasel, y = Marten)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "Weasel", y ="Beech Marten")
 
 
 # all species?
