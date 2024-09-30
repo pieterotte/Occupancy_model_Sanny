@@ -34,9 +34,9 @@ print(overlap_coefficient)
 overlapPlot(rad_group1, rad_group2)
 
 ## calculate bootstrap confidence intervals to add robustness?? 
-set.seed(123)  # For reproducibility
-bootstrap_results <- bootEst(rad_group1, rad_group2, R = 1000)
-print(bootstrap_results)
+# set.seed(123)  # For reproducibility
+#bootstrap_results <- bootEst(rad_group1, rad_group2, R = 1000)
+# print(bootstrap_results)
 
 #### Try with real data ####
 
@@ -151,6 +151,24 @@ print(overlap_coefficient)
 overlapPlot(stoat_times, weasel_times, linecol = c("darkorange", "darkgreen"), main = "Stoat and Weasel") 
 legend("topleft", legend = c("Stoat", "Weasel"), col = c("darkorange", "darkgreen"), lty = 1, cex = 0.8)
 
+
+###### Use Watson's two-sample test to test significance of the temporal overlap ######
+## CATS vs smaller predators
+watson.two.test(cat_times, marten_times)
+watson.two.test(cat_times, polecat_times)
+watson.two.test(cat_times, stoat_times)
+watson.two.test(cat_times, weasel_times)
+## MARTEN vs smaller predators 
+watson.two.test(marten_times, polecat_times)
+watson.two.test(marten_times, stoat_times)
+watson.two.test(marten_times, weasel_times)
+## POLECAT vs smaller predators 
+watson.two.test(polecat_times, stoat_times)
+watson.two.test(polecat_times, weasel_times)
+## STOAT vs smaller predators 
+watson.two.test(stoat_times, weasel_times)
+
+
 ## Make a plot with all 5 species groups 
 # Rename species using case_when
 predator_obs <- predator_obs %>%
@@ -167,7 +185,7 @@ predator_obs <- predator_obs %>%
 
 # filter out the higher taxa groups, so everything is species level
 all_pred <- predator_obs %>%
-  select(commonName, radiantime) %>%
+  select(commonName, radiantime, locationName) %>%
   filter(!commonName %in% c("Small.Mustelid", "Unknown.Mustelid"))
 
 # use Kernel density estimate 
@@ -203,11 +221,64 @@ ggplot(kde_data, aes(x = time, y = density, color = species)) +
 #alternative option with dotted lines for sunrise and sunset + night hours as shading (like in Tsunoda et al., 2020)
 # Plot the kernel density estimates for each species
 ggplot(kde_data, aes(x = time, y = density, color = species)) +
-  geom_line(size = 1) +  # Line thickness
+  geom_line(size = 1.25) +  # Line thickness
   scale_x_continuous(breaks = seq(0, 2 * pi, by=pi/6), # breaks at every 2 hours (by 13 works too)
                      labels = c("00:00", "02:00", "04:00", "06:00", "08:00", "10:00", "12:00", 
                                 "14:00", "16:00", "18:00", "20:00", "22:00", "00:00")) +
   labs(title = "Temporal Activity of Species", x = "Time of Day", y = "Density") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), 
+        plot.background = element_rect(fill = "#FEFAE0", color = NA)) +
+  scale_color_manual(values = c(  "Domestic.Cat" = "#BC6C25", 
+                                  "Marten" = "#606C38", 
+                                  "European.Polecat" = "#006D77",
+                                  "Stoat" = "#64403E", 
+                                  "Weasel" = "#95190C" 
+  )) + 
+  annotate("rect", xmin = 0, xmax = ((5.73 / 24) * 2 * pi), ymin = 0, ymax = Inf, fill = "grey", alpha = 0.3) +  # Nighttime shading # sunset at 21:05 (mean time) so dark at 21:41 (36 min dusk)
+  annotate("rect", xmin = ((21.683 / 24) * 2 * pi), xmax = 2*pi, ymin = 0, ymax = Inf, fill = "grey", alpha = 0.3) + # sunrise at 6:20 (mean time), so dark until 5:44 (36 min dawn)
+  geom_vline(xintercept = ((7.5 / 24) * 2 * pi), linetype= "dotted", color = "black") +
+  geom_vline(xintercept = ((5.36 / 24) * 2 * pi), linetype= "dotted", color = "black") +
+  geom_vline(xintercept = ((20.05 / 24) * 2 * pi), linetype= "dotted", color = "black") + 
+  geom_vline(xintercept = ((21.93 / 24) * 2 * pi), linetype= "dotted", color = "black") 
+
+
+
+################# Temporal plots per indivual cam ############
+## try this out per individual camera
+# doesnt work yet?
+head(all_pred)
+
+all_pred_single_location <- all_pred %>%
+  filter(all_pred$locationName == "SK20") # change camID each time 
+
+# Function to convert time in radians to circular kernel density estimates
+estimate_activity_per_location <- function(all_pred_single_location) {
+  density_data <- density.circular(circular(all_pred_single_location$radiantime), bw = 10) # Adjust bandwidth (bw) as needed
+  return(data.frame(time = density_data$x, density = density_data$y, species = all_pred_single_location$commonName[1]))
+}
+
+# Function to estimate KDE for each species at a location
+estimate_activity_per_location <- function(all_pred_single_location) {
+  if (nrow(all_pred_single_location) == 0) {
+    return(NULL)  # Skip empty subsets
+  }
+  
+  # Proceed with KDE calculation if subset is not empty
+  density_data <- density.circular(circular(all_pred_single_location$radiantime), bw = 10)  # Adjust bandwidth as needed
+  return(data.frame(time = density_data$x, density = density_data$y, species = all_pred_single_location$commonName[1]))
+}
+  
+# Apply the KDE function for each species and combine them, skipping NULL results
+kde_data_per_location <- do.call(rbind, lapply(split(all_pred_single_location, all_pred_single_location$commonName), estimate_activity_per_location))
+
+# Plot the kernel density estimates for each species
+ggplot(kde_data_per_location, aes(x = time, y = density, color = species)) +
+  geom_line(size = 1) +  # Line thickness
+  scale_x_continuous(breaks = seq(0, 2 * pi, by=pi/6), # breaks at every 2 hours (by 13 works too)
+                     labels = c("00:00", "02:00", "04:00", "06:00", "08:00", "10:00", "12:00", 
+                                "14:00", "16:00", "18:00", "20:00", "22:00", "00:00")) +
+  labs(title = "Temporal Activity of Species SK01", x = "Time of Day", y = "Density") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_color_manual(values = c("Domestic.Cat" = "red", "Marten" = "brown", 
@@ -221,6 +292,7 @@ ggplot(kde_data, aes(x = time, y = density, color = species)) +
   geom_vline(xintercept = ((21.93 / 24) * 2 * pi), linetype= "dotted", color = "black") 
 
 
+####################
 #Kruskal Wallis test for mean temporal overlap coefficients for each pairing with domestic cat 
 # create df with Dhat1 values for species compared to domestic cats 
 

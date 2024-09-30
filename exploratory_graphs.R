@@ -10,6 +10,16 @@ lapply(list.of.packages, require, character.only = TRUE)
 
 total_obs <- read.csv("dataframes in R/total_obs.csv")
 
+
+species_colors <- c(
+  "Domestic_Cat" = "#BC6C25", 
+  "Marten" = "#606C38", 
+  "European_Polecat" = "#006D77", 
+  "unknown_Small_Mustelid" = "#283618",
+  "Stoat" = "#64403E", 
+  "Weasel" = "#95190C", 
+  "Mustelid" = "grey" 
+)
 # make a bar graph with total observation per species 
 species_totals <- total_obs %>%
   summarise(
@@ -29,7 +39,7 @@ species_totals_long <- species_totals %>%
 # Create the bar graph
 ggplot(species_totals_long, aes(x = Species, y = Total_Observations, fill=Species)) +
   geom_bar(stat = "identity") +
-  scale_fill_brewer(palette = "Set2") + 
+  scale_fill_manual(values = species_colors) + 
   labs(title = "Total Observations per Species", x = "Species", y = "Total Observations") +
   theme_minimal()
 # make it as a circle diagram 
@@ -37,18 +47,19 @@ ggplot(species_totals_long, aes(x = Species, y = Total_Observations, fill=Specie
 ggplot(species_totals_long, aes(x = "", y = Total_Observations, fill = Species)) +
   geom_bar(stat = "identity", width = 1) +
   coord_polar("y") + # Converts bar chart to pie chart
-  scale_fill_brewer(palette = "Set2") + 
+  scale_fill_manual(values = species_colors) + 
   labs(title = "Species observations (Pie Chart)") +
   theme_void()  # Removes background gridlines and axis
 
 
 # make same map but leave out the small mustelids
 species_totals2 <- species_totals %>%
-  select(-Small_Mustelid) %>%
+  select(-unknown_Small_Mustelid) %>%
   pivot_longer(cols = everything(), names_to = "Species", values_to = "Total_Observations")
 #create bar plot again 
 ggplot(species_totals2, aes(x = Species, y = Total_Observations, fill=Species)) +
   geom_bar(stat = "identity") +
+  scale_fill_manual(values = species_colors) +
   labs(title = "Total Observations per Species", x = "Species", y = "Total Observations") +
   theme_minimal()
 

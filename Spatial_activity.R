@@ -294,7 +294,7 @@ confint(lm.marten_polecat, level = 0.95)
 
 ## MARTEN VS WEASEL 
 # make linear model 
-lm.marten_weasel <- lm(Marten ~ Weasel, data= capture_rate_df)
+lm.marten_weasel <- lm(Weasel ~ Marten, data= capture_rate_df)
 summary(lm.marten_weasel)
 # test assumptions 
 par(mfrow = c(2,2))
@@ -304,17 +304,17 @@ anova(lm.marten_weasel)
 confint(lm.marten_weasel, level = 0.95)
 
 # Visualize the linear relationship
-ggplot(capture_rate_df, aes(x = Weasel, y = Marten)) +
+ggplot(capture_rate_df, aes(x = Marten, y = Weasel)) +
   geom_point() +
   geom_smooth(method = "lm", col = "blue") +
   labs(title = "Linear Model",
-       x = "Weasel", y ="Beech Marten")
+       x = "Beech Marten", y ="Weasel")
 ## Outlier, remove this from dataset? --> SK19
 
 # try model again with outlier removed
 capture_rate_df2 <- capture_rate_df[-19, ]
 # run model again, without ourlier SK19
-lm.marten_weasel_no <- lm(Marten ~ Weasel, data= capture_rate_df2)
+lm.marten_weasel_no <- lm(Weasel ~ Marten, data= capture_rate_df2)
 summary(lm.marten_weasel_no)
 # test assumptions 
 par(mfrow = c(2,2))
@@ -324,11 +324,11 @@ anova(lm.marten_weasel_no)
 confint(lm.marten_weasel_no, level = 0.95)
 
 # Visualize the linear relationship
-ggplot(capture_rate_df2, aes(x = Weasel, y = Marten)) +
+ggplot(capture_rate_df2, aes(x = Marten, y = Weasel)) +
   geom_point() +
   geom_smooth(method = "lm", col = "blue") +
-  labs(title = "Linear Model",
-       x = "Weasel", y ="Beech Marten")
+  labs(title = "Linear Model no outlier",
+       x = "Beech Marten", y ="Weasel")
 
 
 # all species?
@@ -382,12 +382,13 @@ sorensen_data <- melt(sorensen_matrix)
 # Create a heatmap of the Sørensen similarity index
 ggplot(sorensen_data, aes(x = X1, y = X2, fill = value)) +
   geom_tile(color = "white") +
-  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+  scale_fill_gradient2(low = "#006D77", high = "#7B2D26", mid = "white", 
                        midpoint = 0.5, limit = c(0, 1), space = "Lab", 
                        name = "SSI") +
   theme_minimal() + 
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1)) +
+                                   size = 12, hjust = 1),
+        plot.background = element_rect(fill ="#FEFAE0", color= NA)) +
   coord_fixed() +
   labs(title = "Sørensen Similarity Index Between Species",
        x = "Species", y = "Species")
@@ -533,11 +534,11 @@ create_pie_chart <- function(capture_rate_df) {
   )
  
    # Define custom colors for each species
-  custom_colors <- c("Domestic.Cat" = "magenta",  # Light red
-                     "European.Polecat" = "#66B3FF",  # Light blue
-                     "Weasel" = "chocolate4",  # Light green
-                     "Stoat" = "#FFD700",  # Gold
-                     "Marten" = "red")  # Tomato (reddish-orange)
+  custom_colors <- c("Domestic.Cat" = "#BC6C25", 
+                     "Marten" = "#606C38", 
+                     "European.Polecat" = "#006D77",
+                     "Stoat" = "#64403E", 
+                     "Weasel" = "#95190C")  
   
   # Plot the pie chart
   p <- ggplot(pie_data, aes(x = "", y = values, fill = species)) +
@@ -552,10 +553,11 @@ create_pie_chart <- function(capture_rate_df) {
 }
 
 base_map <- ggplot(data = SM_polygon) +
-  geom_sf(fill = "#93DC5C", color = "black", alpha = 0.5) + 
-  labs(title = "Species composition per location",
+  geom_sf(fill = "grey", color = "black", alpha = 0.5) + 
+  labs(title = "Species composition per camera location",
        x = "longitude", y = "latitude", size = "Total Observations") +
-  theme_minimal()
+  theme_minimal() + 
+  theme(plot.background = element_rect(fill= "#FEFAE0", color= NA))
 
 # Add pie charts at respective coordinates
 for (i in 1:nrow(capture_rate_df)) {
@@ -590,8 +592,11 @@ dummy_pie <- ggplot(dummy_data, aes(x = "", y = values, fill = species)) +
   scale_fill_manual(values = custom_colors) + 
   coord_polar("y", start = 0) +
   theme_void() +
-  theme(legend.position = "right")
+  theme(legend.position = "right", 
+        legend.background = element_rect(fill= "#FEFAE0", color= NA))
+dummy_pie
 
+?theme()
 # Extract the legend from the dummy plot
 legend <- get_legend(dummy_pie)
 
