@@ -229,6 +229,7 @@ ggplot(capture_rate_df, aes(x = Stoat, y = Weasel)) +
 #### LINEAR MODELS based on capture rates ####
 
 ## CAT vs smaller predator
+
 ## CAT VS Beech marten  
 # x is predicted based on y in lm(y ~ x, data= data)
 # Test Linear model of correlations 
@@ -250,7 +251,7 @@ summary(lm.cat_polecat)
 # test assumptions 
 par(mfrow = c(2,2))
 plot(lm.cat_polecat)
-# check statistical signifance of the model 
+# check statistical significance of the model 
 anova(lm.cat_polecat)
 confint(lm.cat_polecat, level = 0.95)
 
@@ -262,7 +263,7 @@ summary(lm.cat_stoat)
 par(mfrow = c(2,2))
 plot(lm.cat_stoat) ## assumptions met quite okay?
 
-# check statistical signifance of the model 
+# check statistical significance of the model 
 anova(lm.cat_stoat)
 confint(lm.cat_stoat, level = 0.95)
 
@@ -273,7 +274,7 @@ summary(lm.cat_weasel)
 par(mfrow = c(2,2))
 plot(lm.cat_weasel) ## assumptions met quite okay?
 
-# check statistical signifance of the model 
+# check statistical significance of the model 
 anova(lm.cat_weasel)
 confint(lm.cat_weasel, level = 0.95)
 
@@ -285,12 +286,48 @@ summary(lm.marten_polecat)
 # test assumptions 
 par(mfrow = c(2,2))
 plot(lm.marten_polecat)
-# check statistical signifance of the model 
+# check statistical significance of the model 
 anova(lm.marten_polecat)
 confint(lm.marten_polecat, level = 0.95)
 
+## Marten vs stoat 
+# make linear model 
+lm.marten_stoat <- lm(Marten ~ Stoat, data= capture_rate_df)
+summary(lm.marten_stoat)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.marten_stoat)
+# check statistical significance of the model 
+anova(lm.marten_stoat)
+confint(lm.marten_stoat, level = 0.95)
 
+## SIGNIFICANCE
+# Visualize the linear relationship
+ggplot(capture_rate_df, aes(x = Marten, y = Stoat)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "Beech Marten", y ="Stoat")
 
+## Big outlier (SK19)
+# try model again with outlier removed
+capture_rate_df2 <- capture_rate_df[-19, ]
+# model with no outlier 
+lm.marten_stoat <- lm(Marten ~ Stoat, data= capture_rate_df2)
+summary(lm.marten_stoat)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.marten_stoat)
+# check statistical significance of the model 
+anova(lm.marten_stoat)
+confint(lm.marten_stoat, level = 0.95)
+# Visualize the linear relationship
+ggplot(capture_rate_df2, aes(x = Marten, y = Stoat)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model no outlier",
+       x = "Beech Marten", y ="Stoat")+
+  coord_cartesian(ylim = c(0.0, 0.5))
 
 ## MARTEN VS WEASEL 
 # make linear model 
@@ -328,20 +365,61 @@ ggplot(capture_rate_df2, aes(x = Marten, y = Weasel)) +
   geom_point() +
   geom_smooth(method = "lm", col = "blue") +
   labs(title = "Linear Model no outlier",
-       x = "Beech Marten", y ="Weasel")
+       x = "Beech Marten", y ="Weasel") +
+  coord_cartesian(ylim = c(0.0, 0.2))
 
-
-# all species?
+## POLECAT vs stoat 
 # make linear model 
-lm.cat_all <- lm(Domestic.Cat ~ Marten + European.Polecat + Stoat + Weasel, data= capture_rate_df)
-summary(lm.cat_all)
+lm.polecat_stoat <- lm(European.Polecat ~ Stoat, data= capture_rate_df)
+summary(lm.polecat_stoat)
 # test assumptions 
 par(mfrow = c(2,2))
-plot(lm.cat_polecat)
-# check statistical signifance of the model 
-anova(lm.cat_polecat)
-confint(lm.cat_polecat, level = 0.95)
+plot(lm.polecat_stoat)
+# check statistical significance of the model 
+anova(lm.polecat_stoat)
+confint(lm.polecat_stoat, level = 0.95)
 
+# Visualize the linear relationship
+ggplot(capture_rate_df, aes(x = European.Polecat, y = Stoat)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "European Polecat", y ="Stoat")
+
+## POLECAT vs weasel
+# make linear model 
+lm.polecat_weasel <- lm(European.Polecat ~ Weasel, data= capture_rate_df)
+summary(lm.polecat_weasel)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.polecat_weasel)
+# check statistical significance of the model 
+anova(lm.polecat_weasel)
+confint(lm.polecat_weasel, level = 0.95)
+
+# Visualize the linear relationship
+ggplot(capture_rate_df, aes(x = European.Polecat, y = Weasel)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "European Polecat", y ="Weasel")
+
+# STOAT vs weasel 
+lm.stoat_weasel <- lm(Stoat ~ Weasel, data= capture_rate_df)
+summary(lm.stoat_weasel)
+# test assumptions 
+par(mfrow = c(2,2))
+plot(lm.stoat_weasel)
+# check statistical significance of the model 
+anova(lm.stoat_weasel)
+confint(lm.stoat_weasel, level = 0.95)
+
+# Visualize the linear relationship
+ggplot(capture_rate_df, aes(x = Stoat, y = Weasel)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "blue") +
+  labs(title = "Linear Model",
+       x = "Stoat", y ="Weasel")
 
 
 #### Calculate the Sorensen similarity Index ####
@@ -556,8 +634,8 @@ base_map <- ggplot(data = SM_polygon) +
   geom_sf(fill = "grey", color = "black", alpha = 0.5) + 
   labs(title = "Species composition per camera location",
        x = "longitude", y = "latitude", size = "Total Observations") +
-  theme_minimal() + 
-  theme(plot.background = element_rect(fill= "#FEFAE0", color= NA))
+  theme_minimal() #+ 
+ # theme(plot.background = element_rect(fill= "#FEFAE0", color= NA))
 
 # Add pie charts at respective coordinates
 for (i in 1:nrow(capture_rate_df)) {
@@ -592,11 +670,11 @@ dummy_pie <- ggplot(dummy_data, aes(x = "", y = values, fill = species)) +
   scale_fill_manual(values = custom_colors) + 
   coord_polar("y", start = 0) +
   theme_void() +
-  theme(legend.position = "right", 
-        legend.background = element_rect(fill= "#FEFAE0", color= NA))
-dummy_pie
+  theme(legend.position = "topright")
+        #, 
+        #legend.background = element_rect(fill= "#FEFAE0", color= NA))
 
-?theme()
+
 # Extract the legend from the dummy plot
 legend <- get_legend(dummy_pie)
 
